@@ -12,7 +12,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.LinkedList;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 
@@ -45,11 +46,11 @@ public class PDFAnalyse {
 	 */
 	@SuppressWarnings("resource")
 	public String getFonts() {
-		LinkedList<String> fontsList = new LinkedList<String>();
+		Set<String> fontList = new HashSet<String>();
 		BufferedReader reader = null;
 		try {
 			FileInputStream fis = new FileInputStream(file);
-			reader = new BufferedReader(new InputStreamReader(fis, "gbk"));
+			reader = new BufferedReader(new InputStreamReader(fis, "utf-8"));
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
 		} catch (UnsupportedEncodingException e) {
@@ -58,17 +59,20 @@ public class PDFAnalyse {
 		String line = null;
 		try {
 			while ((line = reader.readLine()) != null) {
-				if (line.contains("<</Type/Font/Subtype/Type0/BaseFont/")) {
-					int prefix = line.indexOf('+');
+				if (line.contains("/ABCDEE+")) {
+					int prefix = line.indexOf("ABCDEE+");
 					int suffix = line.indexOf("/Encoding");
-					String font = line.substring(prefix + 1, suffix);
-					fontsList.add(font);
+					if (suffix < 0) {
+						continue;
+					}
+					String font = line.substring(prefix + 7, suffix);
+					fontList.add(font);
 				}
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return fontsList.toString();
+		return fontList.toString();
 	}
 
 	public String report() {
